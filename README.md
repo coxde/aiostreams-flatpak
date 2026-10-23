@@ -38,14 +38,6 @@ flatpak update --user
 The repository is refreshed every 12 hours by GitHub Actions, and can also be
 run manually.
 
-## Why not point Flatpak at the release asset?
-
-A `.flatpak` file is a single-file bundle, not a remote. Flatpak remotes need an
-OSTree repository with `summary`, `objects/`, `refs/` and signed metadata.
-`flatpak install --from` works on a bundle, but it cannot act as a remote and
-therefore cannot be updated with `flatpak update`. This project imports those
-bundles into exactly that repository layout.
-
 ## Setup
 
 ### 1. Create the repository
@@ -124,27 +116,6 @@ flatpak install --reinstall --user aiostreams \
 
 After that, normal `flatpak update` updates it from this remote.
 
-## Local use
-
-The same script can build a repository into a local directory:
-
-```sh
-sudo apt install flatpak ostree gnupg curl      # Debian/Ubuntu
-sudo dnf install flatpak ostree gnupg2 curl     # Fedora
-
-export FLATPAK_GPG_PRIVATE_KEY="$(cat aiostreams-private.asc)"
-export PAGES_URL="file:///absolute/path/to/site/"
-scripts/sync-remote.sh site
-```
-
-Then add it with the generated file:
-
-```sh
-flatpak remote-add --user --if-not-exists aiostreams-local \
-  "file:///absolute/path/to/site/aiostreams.flatpakrepo"
-flatpak install --user aiostreams-local io.github.viren070.aiostreams
-```
-
 ## Configuration
 
 | Variable                  | Default                         | Meaning                                                          |
@@ -158,11 +129,6 @@ flatpak install --user aiostreams-local io.github.viren070.aiostreams
 | `FLATPAK_GPG_PRIVATE_KEY` | required                        | Armored GPG private key                                          |
 | `FLATPAK_GPG_KEY_ID`      | derived                         | Key ID used to sign commits and the summary                      |
 
-The stable branch is deliberately `master`, because that is the branch inside
-the upstream bundles. An existing bundle install is therefore the same ref, so
-one `flatpak install --reinstall ...` moves it onto this remote without creating
-a second copy of the app.
-
 ## Caveats
 
 - This is a **third-party** remote. Signatures prove the repository was built by
@@ -173,8 +139,6 @@ a second copy of the app.
 - The upstream artifacts are unsigned; the workflow downloads them over HTTPS
   from a pinned repository. If you need a trust chain from source, build from
   source or wait for Flathub.
-- Only the stable `desktop` release is mirrored. If the remote previously
-  published nightly branches, the next sync removes them.
 
 ## License
 
