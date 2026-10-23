@@ -1,0 +1,11 @@
+[core]
+repo_version=1
+mode=archive-z2
+indexed-deltas=true
+
+[flatpak]
+title=AIOStreams Desktop (unofficial)
+comment=Unofficial Flatpak remote for the AIOStreams desktop app
+description=Automatic updates for the AIOStreams desktop app, mirrored from its GitHub Releases.
+homepage=https://github.com/Viren070/AIOStreams
+default-branch=master
