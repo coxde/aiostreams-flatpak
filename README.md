@@ -18,14 +18,14 @@ get normal updates through `flatpak update` or their software centre.
   release. Nightly builds are intentionally not mirrored.
 - Imports every architecture (`x86_64` and `aarch64`) into an OSTree repository.
 - Signs the commits and repository summary with a GPG key you control.
-- Publishes the repository at `https://<owner>.github.io/<repo>/repo/`.
+- Publishes the repository at `https://coxde.github.io/aiostreams-flatpak/repo/`.
 - Writes an `aiostreams.flatpakrepo` file that users can add in one command.
 
 Users then get:
 
 ```sh
 flatpak remote-add --if-not-exists --user aiostreams \
-  https://OWNER.github.io/REPO/aiostreams.flatpakrepo
+  https://coxde.github.io/aiostreams-flatpak/aiostreams.flatpakrepo
 flatpak install --user aiostreams io.github.viren070.aiostreams
 ```
 
@@ -35,7 +35,7 @@ and updates with:
 flatpak update --user
 ```
 
-The repository is refreshed every six hours by GitHub Actions, and can also be
+The repository is refreshed every 12 hours by GitHub Actions, and can also be
 run manually.
 
 ## Why not point Flatpak at the release asset?
@@ -70,10 +70,10 @@ gpg --with-colons --list-secret-keys |
 Keep `aiostreams-private.asc` safe and delete it from disk once it is in GitHub.
 Add these repository secrets under **Settings → Secrets and variables → Actions**:
 
-| Secret | Value |
-| --- | --- |
-| `FLATPAK_GPG_PRIVATE_KEY` | Contents of `aiostreams-private.asc` |
-| `FLATPAK_GPG_KEY_ID` | The key ID printed above (optional; derived if omitted) |
+| Secret                    | Value                                                   |
+| ------------------------- | ------------------------------------------------------- |
+| `FLATPAK_GPG_PRIVATE_KEY` | Contents of `aiostreams-private.asc`                    |
+| `FLATPAK_GPG_KEY_ID`      | The key ID printed above (optional; derived if omitted) |
 
 > The key must have no passphrase: the workflow signs unattended. That also
 > means the GitHub secret is as sensitive as the key itself. The public key is
@@ -87,7 +87,7 @@ the current stable bundles, creates the repository, and pushes it to a new
 `gh-pages` branch. The push that created the repository starts a run before the
 signing secret exists; let it fail, then run the workflow again.
 
-If the Pages URL is not `https://<owner>.github.io/<repo>/`, set a repository
+If the Pages URL is not `https://coxde.github.io/aiostreams-flatpak/`, set a repository
 variable `PAGES_URL` to the real base URL (ending in `/`).
 
 ### 4. Enable GitHub Pages
@@ -99,7 +99,7 @@ Now that `gh-pages` exists, go to **Settings → Pages**, set **Source** to
 
 ```sh
 flatpak remote-add --if-not-exists --user aiostreams \
-  https://OWNER.github.io/REPO/aiostreams.flatpakrepo
+  https://coxde.github.io/aiostreams-flatpak/aiostreams.flatpakrepo
 flatpak install --user aiostreams io.github.viren070.aiostreams
 ```
 
@@ -147,16 +147,16 @@ flatpak install --user aiostreams-local io.github.viren070.aiostreams
 
 ## Configuration
 
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `UPSTREAM_REPO` | `Viren070/AIOStreams` | GitHub repository that publishes the bundles |
-| `APP_ID` | `io.github.viren070.aiostreams` | Flatpak application ID |
-| `ARCHES` | `x86_64 aarch64` | Architectures to mirror |
-| `STABLE_BRANCH` | `master` | Branch used for stable builds |
-| `PAGES_URL` | derived from GitHub | Public base URL of the Pages site |
-| `PRUNE_DEPTH` | `10` | Versions kept; older installs still update, just without a delta |
-| `FLATPAK_GPG_PRIVATE_KEY` | required | Armored GPG private key |
-| `FLATPAK_GPG_KEY_ID` | derived | Key ID used to sign commits and the summary |
+| Variable                  | Default                         | Meaning                                                          |
+| ------------------------- | ------------------------------- | ---------------------------------------------------------------- |
+| `UPSTREAM_REPO`           | `Viren070/AIOStreams`           | GitHub repository that publishes the bundles                     |
+| `APP_ID`                  | `io.github.viren070.aiostreams` | Flatpak application ID                                           |
+| `ARCHES`                  | `x86_64 aarch64`                | Architectures to mirror                                          |
+| `STABLE_BRANCH`           | `master`                        | Branch used for stable builds                                    |
+| `PAGES_URL`               | derived from GitHub             | Public base URL of the Pages site                                |
+| `PRUNE_DEPTH`             | `10`                            | Versions kept; older installs still update, just without a delta |
+| `FLATPAK_GPG_PRIVATE_KEY` | required                        | Armored GPG private key                                          |
+| `FLATPAK_GPG_KEY_ID`      | derived                         | Key ID used to sign commits and the summary                      |
 
 The stable branch is deliberately `master`, because that is the branch inside
 the upstream bundles. An existing bundle install is therefore the same ref, so
