@@ -1,77 +1,77 @@
 name: Sync Flatpak remote
 
 on:
-  schedule:
-    # Four times a day. The sync exits early when upstream has not changed.
-    - cron: '23 */6 * * *'
-  workflow_dispatch:
-    inputs:
-      force:
-        description: Rebuild even if upstream has not released anything
-        type: boolean
-        default: false
-  push:
-    branches: [main]
+    schedule:
+        # Twice a day. The sync exits early when upstream has not changed.
+        - cron: "23 */12 * * *"
+    workflow_dispatch:
+        inputs:
+            force:
+                description: Rebuild even if upstream has not released anything
+                type: boolean
+                default: false
+    push:
+        branches: [main]
 
 permissions:
-  contents: write
+    contents: write
 
 concurrency:
-  group: flatpak-remote
-  cancel-in-progress: false
+    group: flatpak-remote
+    cancel-in-progress: false
 
 jobs:
-  sync:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    env:
-      UPSTREAM_REPO: Viren070/AIOStreams
-      APP_ID: io.github.viren070.aiostreams
-      FORCE_SYNC: ${{ inputs.force && '1' || '0' }}
-      PAGES_URL: ${{ vars.PAGES_URL }}
-      FLATPAK_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-      FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
-      GITHUB_TOKEN: ${{ github.token }}
+    sync:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 30
+        env:
+            UPSTREAM_REPO: Viren070/AIOStreams
+            APP_ID: io.github.viren070.aiostreams
+            FORCE_SYNC: ${{ inputs.force && '1' || '0' }}
+            PAGES_URL: ${{ vars.PAGES_URL }}
+            FLATPAK_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+            FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+            GITHUB_TOKEN: ${{ github.token }}
 
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
+        steps:
+            - name: Check out source
+              uses: actions/checkout@v4
 
-      - name: Install Flatpak tooling
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            ca-certificates curl flatpak gnupg ostree
+            - name: Install Flatpak tooling
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y --no-install-recommends \
+                    ca-certificates curl flatpak gnupg ostree
 
-      - name: Check out or create the published branch
-        run: |
-          set -euo pipefail
-          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
-          remote="https://github.com/${GITHUB_REPOSITORY}.git"
+            - name: Check out or create the published branch
+              run: |
+                  set -euo pipefail
+                  auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
+                  remote="https://github.com/${GITHUB_REPOSITORY}.git"
 
-          if git -c http.extraheader="$auth" ls-remote --exit-code --heads "$remote" gh-pages >/dev/null 2>&1; then
-            git -c http.extraheader="$auth" clone --depth=1 --branch gh-pages \
-              --single-branch "$remote" pages
-          else
-            mkdir pages
-            git -C pages init -q
-          fi
+                  if git -c http.extraheader="$auth" ls-remote --exit-code --heads "$remote" gh-pages >/dev/null 2>&1; then
+                    git -c http.extraheader="$auth" clone --depth=1 --branch gh-pages \
+                      --single-branch "$remote" pages
+                  else
+                    mkdir pages
+                    git -C pages init -q
+                  fi
 
-          git -C pages config user.name 'github-actions[bot]'
-          git -C pages config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git -C pages remote add origin "$remote" 2>/dev/null || true
-          git -C pages config http.https://github.com/.extraheader "$auth"
+                  git -C pages config user.name 'github-actions[bot]'
+                  git -C pages config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+                  git -C pages remote add origin "$remote" 2>/dev/null || true
+                  git -C pages config http.https://github.com/.extraheader "$auth"
 
-      - name: Sync repository
-        run: scripts/sync-remote.sh pages
+            - name: Sync repository
+              run: scripts/sync-remote.sh pages
 
-      - name: Publish
-        run: |
-          set -euo pipefail
-          git -C pages add -A
-          if git -C pages diff --cached --quiet; then
-            echo 'No changes to publish.'
-            exit 0
-          fi
-          git -C pages commit -m 'Update AIOStreams Flatpak repository'
-          git -C pages push origin HEAD:gh-pages
+            - name: Publish
+              run: |
+                  set -euo pipefail
+                  git -C pages add -A
+                  if git -C pages diff --cached --quiet; then
+                    echo 'No changes to publish.'
+                    exit 0
+                  fi
+                  git -C pages commit -m 'Update AIOStreams Flatpak repository'
+                  git -C pages push origin HEAD:gh-pages
