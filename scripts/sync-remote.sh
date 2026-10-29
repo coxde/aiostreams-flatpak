@@ -167,6 +167,13 @@ if [[ ! -f $repo_dir/config ]]; then
   ostree init --repo="$repo_dir" --mode=archive
 fi
 
+# git does not track empty directories, so a fresh clone of gh-pages loses the
+# empty dirs an OSTree repo expects. build-import-bundle and build-update-repo
+# read refs/remotes, and fail without it.
+for dir in extensions refs/heads refs/mirrors refs/remotes state tmp/cache; do
+  mkdir -p "$repo_dir/$dir"
+done
+
 import_release() {
   local arch asset url file ref
 
